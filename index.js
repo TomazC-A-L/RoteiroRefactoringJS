@@ -16,15 +16,11 @@ function gerarFaturaStr (fatura, pecas) {
       return creditos;   
     }
 
-  function calcularTotalApresentacao(apre, peca) {
-
-    function getCompileCacheDir(apresentacao) {
-      return pecas[apresentacao.id];
-    }
+  function calcularTotalApresentacao(apre) {
 
       let total = 0;
   
-      switch (peca.tipo) {
+      switch (getPeca(apre).tipo) {
         case "tragedia":
           total = 40000;
           if (apre.audiencia > 30) {
@@ -44,24 +40,34 @@ function gerarFaturaStr (fatura, pecas) {
 
       return total
     }
-    let totalFatura = 0;
-    let creditos = 0;
+    
+    function calcularTotalFatura(faturaJSON){
+      let fatura = 0
+      for (let apre of faturaJSON.apresentacoes) {
+          fatura+=calcularTotalApresentacao(apre)
+      }
+
+      return fatura
+    }
+
+    function calcularTotalCreditos(){
+      let creditos = 0
+      for (let apre of fatura.apresentacoes) {
+          creditos+=calcularCredito(apre)
+      }
+
+      return creditos
+    }
+
     let faturaStr = `Fatura ${fatura.cliente}\n`;
     
   
     for (let apre of fatura.apresentacoes) {
-    //const peca = getPeca(apre);
-      total = calcularTotalApresentacao(apre, getPeca(apre));
-  
-      // créditos para próximas contratações
-      creditos += calcularCredito(apre);
-  
-      // mais uma linha da fatura
-      faturaStr += `  ${getPeca(apre).nome}: ${formatarMoeda(total)} (${apre.audiencia} assentos)\n`;
-      totalFatura += total;
+      faturaStr += `  ${getPeca(apre).nome}:
+      ${formatarMoeda(calcularTotalApresentacao(apre))} (${apre.audiencia} assentos)\n`;
     }
-    faturaStr += `Valor total: ${formatarMoeda(totalFatura)}\n`;
-    faturaStr += `Créditos acumulados: ${creditos} \n`;
+    faturaStr += `Valor total: ${formatarMoeda(calcularTotalFatura(fatura))}\n`;
+    faturaStr += `Créditos acumulados: ${calcularTotalCreditos()} \n`;
     return faturaStr;
   }
 
